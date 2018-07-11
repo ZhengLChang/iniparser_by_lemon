@@ -2,7 +2,8 @@
 CC=gcc
 INCLUDE=
 LIB=-lpthread -lcrypto -liconv
-CFLAGS=-g -Wall -Werror -D_REENTRANT -D_GNU_SOURCE ${LIB} ${INCLUDE}
+#CFLAGS=-g -Wall -Werror -D_REENTRANT -D_GNU_SOURCE ${LIB} ${INCLUDE}
+CFLAGS=-g -D_REENTRANT -D_GNU_SOURCE ${LIB} ${INCLUDE}
 #CFLAGS=-g ${LIB} ${INCLUDE}
 MainFile=
 #OutPut=$(patsubst %.c, %, ${MainFile})

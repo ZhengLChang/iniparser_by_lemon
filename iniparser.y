@@ -9,7 +9,37 @@
 %name iniparser
 %extra_argument {char *current_section}
 %token_type {char *}
-%default_type {char *}
+//%default_type {char *}
+%type key {char *}
+//%default_destructor {
+//	fprintf(stderr, "default_destructor, will destructor: %s\n", $$);
+//	free($$);
+//}
+%token_destructor{
+	if($$)
+	{
+//		fprintf(stderr, "token_destructor, will destructor: %s(%x)\n", $$, $$);
+//		free($$);
+	}
+}
+/*
+%destructor main {
+	fprintf(stderr, "destructor, will destructor: %s\n", $$);
+	free($$);
+}
+%destructor in {
+	fprintf(stderr, "destructor, will destructor: %s\n", $$);
+	free($$);
+}
+%destructor expr {
+	fprintf(stderr, "destructor, will destructor: %s\n", $$);
+	free($$);
+}
+%destructor key {
+	fprintf(stderr, "destructor, will destructor: %s\n", $$);
+	free($$);
+}
+*/
 %syntax_error{
 	fprintf(stderr, "Synatax Error!!!\n");
 	exit(1);
@@ -23,26 +53,33 @@ eol ::= CR LF.
 eol ::= LF.
 section ::= LMIDDLEPARENT key(A) RMIDDLEPARENT eol.{
 	strcpy(current_section, A);
-	fprintf(stderr, "%s", current_section);
+	free(A);
+	//fprintf(stderr, "%s\n", current_section);
 }
 expr ::= key(A) EQ eol.{
-	if(current_section == NULL)
+	if(current_section == NULL || current_section[0] == '\0')
 	{
 		fprintf(stderr, ":%s = \n", A);
+		free(A);
 	}
 	else
 	{
 		fprintf(stderr, "%s:%s = \n", current_section, A);
+		free(A);
 	}
 }
 expr ::= key(A) EQ key(B) eol.{
 	if(current_section == NULL || current_section[0] == '\0')
 	{
 		fprintf(stderr, ":%s = %s\n", A, B);
+		free(A);
+		free(B);
 	}
 	else
 	{
 		fprintf(stderr, "%s:%s = %s\n", current_section, A, B);
+		free(A);
+		free(B);
 	}
 }
 key(A) ::= STRING(B).{
@@ -54,7 +91,7 @@ static int getToken(const char *z, int *token);
 int main(int argc, char **argv)
 {
 	void *pParser = NULL;
-	int tokenType = -1, n = -1;
+	int tokenType = 0, n = -1;
 	char line[1024] = "", *p = NULL;
 	char context[1024] = "";
 	FILE *fp = NULL;
@@ -98,6 +135,8 @@ int main(int argc, char **argv)
 			}
 		}
 	}
+	iniparserFree(pParser, free);
+	fclose(fp);
 	return 0;
 }
 static int getToken(const char *z, int *token)
