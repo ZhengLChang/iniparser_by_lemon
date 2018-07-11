@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <assert.h>
 #include "iniparser.h"
 }
 %token_prefix INI_
@@ -22,33 +23,51 @@
 //		free($$);
 	}
 }
+%default_destructor {
+//	fprintf(stderr, "default_destructor, will destructor: %s\n", $$);
+//	free($$);
+}
 /*
 %destructor main {
-	fprintf(stderr, "destructor, will destructor: %s\n", $$);
-	free($$);
+	fprintf(stderr, "destructor main, will destructor: %s\n", $$);
+//	free($$);
 }
 %destructor in {
-	fprintf(stderr, "destructor, will destructor: %s\n", $$);
+	fprintf(stderr, "destructor in, will destructor: %s\n", $$);
+//	free($$);
+}
+%destructor input {
+	fprintf(stderr, "destructor input, will destructor: %s\n", $$);
+	free($$);
+}
+%destructor section {
+	fprintf(stderr, "destructor section, will destructor: %s\n", $$);
 	free($$);
 }
 %destructor expr {
-	fprintf(stderr, "destructor, will destructor: %s\n", $$);
-	free($$);
+	fprintf(stderr, "destructor expr, will destructor: %s\n", $$);
+//	free($$);
 }
 %destructor key {
-	fprintf(stderr, "destructor, will destructor: %s\n", $$);
-	free($$);
+	fprintf(stderr, "destructor key, will destructor: %s\n", $$);
+//	free($$);
 }
 */
 %syntax_error{
 	fprintf(stderr, "Synatax Error!!!\n");
 	exit(1);
 }
+/*
 main ::= in.
 in ::= .
 in ::= eol.
 in ::= section.
 in ::= expr.
+*/
+input ::= section.
+input ::= expr.
+input ::= .
+input ::= eol.
 eol ::= CR LF.
 eol ::= LF.
 section ::= LMIDDLEPARENT key(A) RMIDDLEPARENT eol.{
@@ -85,7 +104,6 @@ expr ::= key(A) EQ key(B) eol.{
 key(A) ::= STRING(B).{
 	A = B;
 }
-
 %code{
 static int getToken(const char *z, int *token);
 int main(int argc, char **argv)
