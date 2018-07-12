@@ -5,7 +5,7 @@
 #include <assert.h>
 #include "iniparser.h"
 
-static int getToken(const char *z, int *token);
+static int getToken(const char *z, int *token, int last_token_stat);
 int main(int argc, char **argv)
 {
 	void *pParser = NULL;
@@ -28,11 +28,12 @@ int main(int argc, char **argv)
 	while(fgets(line, sizeof(line), fp) != NULL)
 	{
 		char *str = NULL;
+		int last_token_stat = INI_LF;
 		n = 0;
 		p = line;
 		while(p[i] != '\0')
 		{
-			n = getToken(p, &tokenType);
+			n = getToken(p, &tokenType, last_token_stat);
 			if(tokenType == INI_STRING)
 			{
 				str = strndup(p, n);
@@ -40,6 +41,7 @@ int main(int argc, char **argv)
 			}
 			if(tokenType > 0)
 			{
+				last_token_stat = tokenType;
 				iniparser(pParser, tokenType, str, context);
 				p += n;
 			}
@@ -57,7 +59,7 @@ int main(int argc, char **argv)
 	fclose(fp);
 	return 0;
 }
-static int getToken(const char *z, int *token)
+static int getToken(const char *z, int *token, int last_token_stat)
 {
 	int i = 0;
 	switch(*z)
@@ -68,10 +70,6 @@ static int getToken(const char *z, int *token)
 			break;
 		case '\n':
 			*token = INI_LF;
-			return 1;
-			break;
-		case '=':
-			*token = INI_EQ;
 			return 1;
 			break;
 		case '[':
@@ -88,15 +86,35 @@ static int getToken(const char *z, int *token)
 			*token = -1;
 			return 1;
 		}
+		case '=':
+		{
+			if(last_token_stat != INI_EQ)
+			{
+				*token = INI_EQ;
+				return 1;
+				break;
+			}
+		}
 		default:
 		{
-			for(i = 1; z[i] != ']' && z[i] != '=' &&
-					z[i] != '\0' && z[i] != '\r' &&
-					z[i] != '\n'; i++)
-			{}
+			for(i = 1;z[i] != '\0' && z[i] != '\r' &&
+						z[i] != '\n'; i++)
+			{
+				if(last_token_stat == INI_LF &&
+						z[i] == '=')
+				{
+					break;	
+				}
+				else if(last_token_stat == INI_LMIDDLEPARENT &&
+						z[i] == ']')
+				{
+					break;
+				}
+			}
 			*token = INI_STRING;
 			return i;
 		}
 	}
+	return 0;
 }
 

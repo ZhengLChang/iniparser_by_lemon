@@ -59,6 +59,10 @@
 	if( TOKEN ){
 		fprintf(stderr, "near \"%s\", type %d: syntax error\n", TOKEN, yymajor);
 	}
+	else
+	{
+		fprintf(stderr, "type %d: syntax error\n", yymajor);
+	}
 	exit(1);
 }
 /*
