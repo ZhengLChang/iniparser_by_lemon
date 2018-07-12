@@ -5,7 +5,7 @@ LIB=-lpthread -lcrypto -liconv
 #CFLAGS=-g -Wall -Werror -D_REENTRANT -D_GNU_SOURCE ${LIB} ${INCLUDE}
 CFLAGS=-g -D_REENTRANT -D_GNU_SOURCE ${LIB} ${INCLUDE}
 #CFLAGS=-g ${LIB} ${INCLUDE}
-MainFile=
+MainFile=main.c
 #OutPut=$(patsubst %.c, %, ${MainFile})
 OutPut=iniparser
 parserFile=iniparser.y
@@ -23,7 +23,7 @@ springcleaning+=$(targetParserFile)
 .PHONY: all clean
 
 all: lemon getParserFile $(OutPut)
-$(OutPut):${target}
+$(OutPut):${target} ${targetParserFile}
 	$(CC) ${target}  -o $@ ${CFLAGS} ${INCLUDE} 
 
 lemon: lemon.c lempar.c
@@ -31,5 +31,5 @@ lemon: lemon.c lempar.c
 
 getParserFile: lemon $(parserFile)
 	./lemon $(parserFile)
-clean:
-	-@rm  ${springcleaning}
+#clean:
+#	-@rm  ${springcleaning}
